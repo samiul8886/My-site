@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>দেশ ও নাম্বার ম্যানেজমেন্ট সিস্টেম</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --danger: #e74c3c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c 0%, #2a4d69 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .panel-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #4dccff;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .delete-btn {
+            background: var(--danger);
+        }
+        
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+        
+        .success-btn {
+            background: var(--secondary);
+        }
+        
+        .success-btn:hover {
+            background: #27ae60;
+        }
+        
+        .country-list {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        
+        .country-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        
+        .country-name {
+            font-size: 1.2rem;
+        }
+        
+        .numbers-list {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        
+        .number-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+        }
+        
+        .home-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            color: #4dccff;
+            font-size: 1.1rem;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .home-link:hover {
+            text-decoration: underline;
+            color: #fff;
+        }
+        
+        .message {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2rem;
+            color: #ffcc00;
+        }
+        
+        .file-input-container {
+            margin: 15px 0;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .file-input-label {
+            display: block;
+            background: var(--secondary);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .file-input-label:hover {
+            background: #27ae60;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #4dccff;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .tab.active {
+            background: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>দেশ ও নাম্বার ম্যানেজমেন্ট সিস্টেম</h1>
+            <p>অ্যাডমিন প্যানেল - দেশ ও নাম্বার ম্যানেজ করুন</p>
+        </header>
+        
+        <div class="tab-container">
+            <div class="tab active" data-tab="country">দেশ ম্যানেজমেন্ট</div>
+            <div class="tab" data-tab="number">নাম্বার ম্যানেজমেন্ট</div>
+        </div>
+        
+        <div class="dashboard">
+            <!-- দেশ ম্যানেজমেন্ট প্যানেল -->
+            <div class="panel tab-content active" id="country-panel">
+                <h2 class="panel-title">দেশ ম্যানেজমেন্ট</h2>
+                
+                <div class="form-group">
+                    <label for="countryInput">দেশের নাম:</label>
+                    <input type="text" id="countryInput" placeholder="দেশের নাম লিখুন">
+                    <button onclick="addCountry()">দেশ যোগ করুন</button>
+                </div>
+                
+                <h3>দেশের তালিকা:</h3>
+                <div class="country-list" id="countryList">
+                    <!-- দেশের তালিকা এখানে লোড হবে -->
+                </div>
+            </div>
+            
+            <!-- নাম্বার ম্যানেজমেন্ট প্যানেল -->
+            <div class="panel tab-content" id="number-panel">
+                <h2 class="panel-title">নাম্বার ম্যানেজমেন্ট</h2>
+                
+                <div class="form-group">
+                    <label for="countrySelect">দেশ নির্বাচন:</label>
+                    <select id="countrySelect">
+                        <option value="">-- দেশ নির্বাচন করুন --</option>
+                    </select>
+                    
+                    <div class="file-input-container">
+                        <label for="excelFile" class="file-input-label">এক্সেল ফাইল নির্বাচন করুন (.xlsx)</label>
+                        <input type="file" id="excelFile" class="file-input" accept=".xlsx, .xls">
+                        <button class="success-btn" onclick="importExcel()">এক্সেল ফাইল ইমপোর্ট করুন</button>
+                    </div>
+                    
+                    <div class="instructions">
+                        <h3>এক্সেল ফাইল নির্দেশনা:</h3>
+                        <ul>
+                            <li>ফাইলের প্রথম কলামে নাম্বারগুলো রাখুন</li>
+                            <li>প্রতিটি নাম্বার একটি আলাদা সারিতে থাকতে হবে</li>
+                            <li>ফাইলে শুধু নাম্বার থাকতে হবে, অন্য কোনো ডেটা নয়</li>
+                        </ul>
+                    </div>
+                    
+                    <label for="numberInput">অথবা ম্যানুয়ালি নাম্বার লিখুন:</label>
+                    <input type="text" id="numberInput" placeholder="নাম্বার লিখুন">
+                    <button onclick="addNumber()">নাম্বার যোগ করুন</button>
+                    <button class="delete-btn" onclick="clearNumbers()">সকল নাম্বার ডিলিট করুন</button>
+                </div>
+                
+                <h3>নির্বাচিত দেশের নাম্বার:</h3>
+                <div class="numbers-list" id="numbersList">
+                    <!-- নাম্বার তালিকা এখানে লোড হবে -->
+                </div>
+            </div>
+        </div>
+        
+        <a href="index.html" class="home-link">ওয়েবসাইটে ফিরে যান</a>
+    </div>
+
+    <script>
+        // লোকাল স্টোরেজ থেকে ডেটা লোড
+        function loadData() {
+            return {
+                countries: JSON.parse(localStorage.getItem('countries')) || [],
+                numbers: JSON.parse(localStorage.getItem('numbers')) || {}
+            };
+        }
+
+        // ডেটা সেভ করুন
+        function saveData(data) {
+            localStorage.setItem('countries', JSON.stringify(data.countries));
+            localStorage.setItem('numbers', JSON.stringify(data.numbers));
+        }
+
+        // দেশ যোগ করুন
+        function addCountry() {
+            const countryInput = document.getElementById('countryInput');
+            const countryName = countryInput.value.trim();
+            
+            if (countryName) {
+                const data = loadData();
+                
+                // নতুন দেশ যোগ করুন
+                if (!data.countries.includes(countryName)) {
+                    data.countries.push(countryName);
+                    saveData(data);
+                    countryInput.value = '';
+                    displayCountries();
+                    updateCountryDropdown();
+                    alert('দেশ যোগ করা হয়েছে: ' + countryName);
+                } else {
+                    alert('এই দেশটি ইতিমধ্যেই রয়েছে!');
+                }
+            } else {
+                alert('দেশের নাম লিখুন!');
+            }
+        }
+
+        // দেশ ডিলিট করুন
+        function deleteCountry(country) {
+            if (confirm('আপনি কি "' + country + '" দেশটি ডিলিট করতে চান?')) {
+                const data = loadData();
+                
+                // দেশের তালিকা থেকে সরান
+                const index = data.countries.indexOf(country);
+                if (index !== -1) {
+                    data.countries.splice(index, 1);
+                }
+                
+                // নাম্বারগুলো থেকে দেশের এন্ট্রি ডিলিট করুন
+                if (data.numbers[country]) {
+                    delete data.numbers[country];
+                }
+                
+                saveData(data);
+                displayCountries();
+                updateCountryDropdown();
+                displayNumbers();
+                alert('দেশ ডিলিট করা হয়েছে: ' + country);
+            }
+        }
+
+        // দেশের তালিকা প্রদর্শন
+        function displayCountries() {
+            const data = loadData();
+            const container = document.getElementById('countryList');
+            container.innerHTML = '';
+            
+            if (data.countries.length === 0) {
+                container.innerHTML = '<div class="message">কোন দেশ যোগ করা হয়নি</div>';
+                return;
+            }
+            
+            data.countries.forEach(country => {
+                const countryItem = document.createElement('div');
+                countryItem.className = 'country-item';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'country-name';
+                nameSpan.textContent = country;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'ডিলিট';
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.onclick = () => deleteCountry(country);
+                
+                countryItem.appendChild(nameSpan);
+                countryItem.appendChild(deleteBtn);
+                container.appendChild(countryItem);
+            });
+        }
+
+        // দেশের ড্রপডাউন আপডেট করুন
+        function updateCountryDropdown() {
+            const data = loadData();
+            const select = document.getElementById('countrySelect');
+            
+            // বর্তমান নির্বাচিত দেশ সংরক্ষণ
+            const selectedCountry = select.value;
+            select.innerHTML = '<option value="">-- দেশ নির্বাচন করুন --</option>';
+            
+            data.countries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country;
+                option.textContent = country;
+                select.appendChild(option);
+            });
+            
+            // পূর্বে নির্বাচিত দেশ সেট করুন
+            if (selectedCountry && data.countries.includes(selectedCountry)) {
+                select.value = selectedCountry;
+            }
+            
+            // নাম্বার তালিকা আপডেট করুন
+            displayNumbers();
+        }
+
+        // নাম্বার যোগ করুন
+        function addNumber() {
+            const countrySelect = document.getElementById('countrySelect');
+            const numberInput = document.getElementById('numberInput');
+            const country = countrySelect.value;
+            const number = numberInput.value.trim();
+            
+            if (!country) {
+                alert('একটি দেশ নির্বাচন করুন!');
+                return;
+            }
+            
+            if (!number) {
+                alert('নাম্বার লিখুন!');
+                return;
+            }
+            
+            const data = loadData();
+            
+            // নাম্বার অ্যারে তৈরি করুন
+            if (!data.numbers[country]) {
+                data.numbers[country] = [];
+            }
+            
+            // নতুন নাম্বার যোগ করুন
+            if (!data.numbers[country].includes(number)) {
+                data.numbers[country].push(number);
+                saveData(data);
+                numberInput.value = '';
+                displayNumbers();
+                alert('নাম্বার যোগ করা হয়েছে: ' + number);
+            } else {
+                alert('এই নাম্বারটি ইতিমধ্যেই আছে!');
+            }
+        }
+
+        // এক্সেল ফাইল ইমপোর্ট করুন
+        function importExcel() {
+            const countrySelect = document.getElementById('countrySelect');
+            const country = countrySelect.value;
+            
+            if (!country) {
+                alert('একটি দেশ নির্বাচন করুন!');
+                return;
+            }
+            
+            const fileInput = document.getElementById('excelFile');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('একটি এক্সেল ফাইল নির্বাচন করুন!');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // প্রথম শীটের নাম
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    
+                    // শীটকে JSON এ রূপান্তর
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    // নাম্বার সংগ্রহ (প্রথম কলাম ধরে)
+                    const numbers = [];
+                    jsonData.forEach(row => {
+                        if (row.length > 0 && row[0] !== undefined) {
+                            // সংখ্যায় রূপান্তর করার চেষ্টা করি, না হলে স্ট্রিং হিসেবে নেব
+                            let num = row[0];
+                            if (typeof num === 'number') {
+                                num = num.toString();
+                            }
+                            if (num && num.trim() !== '') {
+                                numbers.push(num.trim());
+                            }
+                        }
+                    });
+                    
+                    if (numbers.length === 0) {
+                        alert('কোন নাম্বার পাওয়া যায়নি!');
+                        return;
+                    }
+                    
+                    // ডেটা লোড করুন
+                    const dataStore = loadData();
+                    
+                    // নির্বাচিত দেশের জন্য নাম্বার যোগ করুন
+                    if (!dataStore.numbers[country]) {
+                        dataStore.numbers[country] = [];
+                    }
+                    
+                    // নতুন নাম্বার যোগ করুন (ডুপ্লিকেট এড়াতে)
+                    let addedCount = 0;
+                    numbers.forEach(num => {
+                        if (!dataStore.numbers[country].includes(num)) {
+                            dataStore.numbers[country].push(num);
+                            addedCount++;
+                        }
+                    });
+                    
+                    saveData(dataStore);
+                    displayNumbers();
+                    alert(`${addedCount}টি নাম্বার সফলভাবে যোগ করা হয়েছে!`);
+                    
+                    // ফাইল ইনপুট রিসেট
+                    fileInput.value = '';
+                } catch (error) {
+                    console.error(error);
+                    alert('এক্সেল ফাইল পড়তে সমস্যা হয়েছে: ' + error.message);
+                }
+            };
+            
+            reader.onerror = function() {
+                alert('ফাইল পড়তে সমস্যা হয়েছে!');
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        // নাম্বার ডিলিট করুন
+        function deleteNumber(country, number) {
+            if (confirm('আপনি কি এই নাম্বারটি ডিলিট করতে চান?')) {
+                const data = loadData();
+                
+                if (data.numbers[country]) {
+                    const index = data.numbers[country].indexOf(number);
+                    if (index !== -1) {
+                        data.numbers[country].splice(index, 1);
+                        saveData(data);
+                        displayNumbers();
+                        alert('নাম্বার ডিলিট করা হয়েছে!');
+                    }
+                }
+            }
+        }
+
+        // সকল নাম্বার ডিলিট করুন
+        function clearNumbers() {
+            const countrySelect = document.getElementById('countrySelect');
+            const country = countrySelect.value;
+            
+            if (!country) {
+                alert('একটি দেশ নির্বাচন করুন!');
+                return;
+            }
+            
+            if (confirm('আপনি কি ' + country + ' দেশের সকল নাম্বার ডিলিট করতে চান?')) {
+                const data = loadData();
+                
+                if (data.numbers[country]) {
+                    data.numbers[country] = [];
+                    saveData(data);
+                    displayNumbers();
+                    alert('সকল নাম্বার ডিলিট করা হয়েছে!');
+                }
+            }
+        }
+
+        // নাম্বার তালিকা প্রদর্শন
+        function displayNumbers() {
+            const countrySelect = document.getElementById('countrySelect');
+            const country = countrySelect.value;
+            const container = document.getElementById('numbersList');
+            container.innerHTML = '';
+            
+            if (!country) {
+                container.innerHTML = '<div class="message">দেশ নির্বাচন করুন</div>';
+                return;
+            }
+            
+            const data = loadData();
+            const numbers = data.numbers[country] || [];
+            
+            if (numbers.length === 0) {
+                container.innerHTML = '<div class="message">কোন নাম্বার নেই</div>';
+                return;
+            }
+            
+            // নাম্বার কাউন্টার দেখান
+            const countElement = document.createElement('div');
+            countElement.className = 'number-item';
+            countElement.style.justifyContent = 'center';
+            countElement.style.fontWeight = 'bold';
+            countElement.style.background = 'rgba(0, 0, 0, 0.4)';
+            countElement.innerHTML = `মোট নাম্বার: ${numbers.length} টি`;
+            container.appendChild(countElement);
+            
+            numbers.forEach(number => {
+                const numberItem = document.createElement('div');
+                numberItem.className = 'number-item';
+                
+                const numberSpan = document.createElement('span');
+                numberSpan.textContent = number;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'ডিলিট';
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.onclick = () => deleteNumber(country, number);
+                
+                numberItem.appendChild(numberSpan);
+                numberItem.appendChild(deleteBtn);
+                container.appendChild(numberItem);
+            });
+        }
+
+        // দেশ নির্বাচন পরিবর্তন হলে নাম্বার তালিকা আপডেট করুন
+        document.getElementById('countrySelect').addEventListener('change', displayNumbers);
+
+        // ট্যাব ফাংশনালিটি
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // সব ট্যাব থেকে active ক্লাস সরান
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // ক্লিক করা ট্যাবে active ক্লাস যোগ করুন
+                this.classList.add('active');
+                
+                // সব ট্যাব কন্টেন্ট লুকান
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                // সংশ্লিষ্ট ট্যাব কন্টেন্ট দেখান
+                document.getElementById(`${this.dataset.tab}-panel`).classList.add('active');
+            });
+        });
+
+        // শুরুতে ডেটা লোড করুন
+        window.onload = function() {
+            displayCountries();
+            updateCountryDropdown();
+        };
+    </script>
+</body>
+</html>
