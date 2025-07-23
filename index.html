@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>কোন দেশের নাম্বার নিবেন সিলেক্ট করুন</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'SolaimanLipi', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+        .container {
+            max-width: 800px;
+            width: 95%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.3rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            color: #fff;
+        }
+        .countries {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+        .country {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        .country:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .country.selected {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 2px solid #fff;
+        }
+        .number-container {
+            text-align: center;
+            padding: 30px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .number-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #000;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 300px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        .number-display-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .number {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 1px;
+            padding: 10px;
+            text-align: center;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            background: rgba(30, 30, 30, 0.8);
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .copy-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: auto;
+        }
+        .copy-btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        .otp-group-btn {
+            background: #0088cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 136, 204, 0.4);
+        }
+        .otp-group-btn:hover {
+            background: #007ab8;
+            transform: scale(1.05);
+        }
+        .change-btn {
+            background: #ff4d94;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(255, 77, 148, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .change-btn:hover {
+            background: #ff2d87;
+            transform: scale(1.05);
+        }
+        .change-btn:disabled {
+            background: #7a7a7a;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .admin-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+        .admin-link:hover {
+            background: rgba(0, 0, 0, 0.5);
+            transform: translateY(-2px);
+        }
+        .message {
+            font-size: 1.5rem;
+            color: #ffcc00;
+            text-align: center;
+            padding: 20px;
+        }
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            opacity: 0.8;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .info-text {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            color: #ccc;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 15px;
+            }
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 20px;
+            }
+            .country {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+            .number {
+                font-size: 1.2rem;
+            }
+            .change-btn {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+            .number-box {
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="admin.html" class="admin-link">
+        <i class="fas fa-cog"></i> অ্যাডমিন
+    </a>
+    
+    <div class="container">
+        <h1>দেশ নির্বাচন করুন</h1>
+        
+        <div class="countries" id="countriesContainer">
+            <!-- দেশগুলো এখানে লোড হবে -->
+        </div>
+        
+        <div class="number-container">
+            <div class="number-box">
+                <div class="number-display-container">
+                    <div id="numberDisplay" class="number">দেশ নির্বাচন করুন</div>
+                    <button id="copyBtn" class="copy-btn" title="কপি করুন">
+                        <i class="far fa-copy"></i> নাম্বার কপি করুন
+                    </button>
+
+                    <!-- ✅ নতুন OTP GROUP বাটন -->
+                    <a href="https://web.telegram.org/k/#-2737861345" target="_blank" class="otp-group-btn">
+                        <i class="fab fa-telegram-plane"></i> OTP GROUP
+                    </a>
+                </div>
+            </div>
+            <button id="changeBtn" class="change-btn" disabled>
+                <i class="fas fa-sync-alt"></i> চেঞ্জ করুন
+            </button>
+            <p class="info-text">কপি বাটনে ক্লিক করলে নাম্বারটি ক্লিপবোর্ডে সংরক্ষিত হবে</p>
+        </div>
+    </div>
+    
+    <footer>
+        <p>© 2025 Number Tools | Developer_Samiul</p>
+    </footer>
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i> নাম্বার কপি করা হয়েছে!
+    </div>
+
+    <script>
+        function loadData() {
+            return {
+                countries: JSON.parse(localStorage.getItem('countries')) || ['বাংলাদেশ', 'ভারত', 'পাকিস্তান'],
+                numbers: JSON.parse(localStorage.getItem('numbers')) || {
+                    'বাংলাদেশ': ['2250715136681', '2250715136939', '2250715136261'],
+                    'ভারত': ['2250715136534', '2250715138630', '2250715130637'],
+                    'পাকিস্তান': ['2250715132902', '2250715131636', '2250715133196']
+                }
+            };
+        }
+
+        function saveData(data) {
+            localStorage.setItem('countries', JSON.stringify(data.countries));
+            localStorage.setItem('numbers', JSON.stringify(data.numbers));
+        }
+
+        function displayCountries() {
+            const data = loadData();
+            const container = document.getElementById('countriesContainer');
+            container.innerHTML = '';
+            
+            if (data.countries.length === 0) {
+                container.innerHTML = '<div class="message">কোন দেশ যোগ করা হয়নি</div>';
+                return;
+            }
+            
+            data.countries.forEach(country => {
+                const countryDiv = document.createElement('div');
+                countryDiv.className = 'country';
+                countryDiv.textContent = country;
+                countryDiv.onclick = () => selectCountry(country);
+                container.appendChild(countryDiv);
+            });
+        }
+
+        function selectCountry(country) {
+            const data = loadData();
+            const numbers = data.numbers[country] || [];
+            const numberDisplay = document.getElementById('numberDisplay');
+            const changeBtn = document.getElementById('changeBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            document.querySelectorAll('.country').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            event.currentTarget.classList.add('selected');
+            
+            if (numbers.length > 0) {
+                const randomIndex = Math.floor(Math.random() * numbers.length);
+                numberDisplay.textContent = numbers[randomIndex];
+                numberDisplay.dataset.country = country;
+                numberDisplay.dataset.currentNumber = numbers[randomIndex];
+                changeBtn.disabled = false;
+                copyBtn.style.display = 'flex';
+            } else {
+                numberDisplay.textContent = "কোন নাম্বার নেই";
+                changeBtn.disabled = true;
+                copyBtn.style.display = 'none';
+            }
+        }
+
+        document.getElementById('changeBtn').onclick = function() {
+            const country = document.getElementById('numberDisplay').dataset.country;
+            const currentNumber = document.getElementById('numberDisplay').dataset.currentNumber;
+            
+            if (country) {
+                const data = loadData();
+                const numbers = data.numbers[country] || [];
+                
+                const index = numbers.indexOf(currentNumber);
+                if (index !== -1) {
+                    numbers.splice(index, 1);
+                    data.numbers[country] = numbers;
+                    saveData(data);
+                }
+                
+                if (numbers.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * numbers.length);
+                    const newNumber = numbers[randomIndex];
+                    document.getElementById('numberDisplay').textContent = newNumber;
+                    document.getElementById('numberDisplay').dataset.currentNumber = newNumber;
+                } else {
+                    document.getElementById('numberDisplay').textContent = "কোন নাম্বার নেই";
+                    this.disabled = true;
+                    document.getElementById('copyBtn').style.display = 'none';
+                }
+            }
+        };
+
+        document.getElementById('copyBtn').addEventListener('click', function() {
+            const number = document.getElementById('numberDisplay').textContent;
+            navigator.clipboard.writeText(number).then(() => {
+                showToast('নাম্বার কপি করা হয়েছে!');
+            }).catch(err => {
+                console.error('কপি করতে ব্যর্থ: ', err);
+                showToast('কপি করতে ব্যর্থ!');
+            });
+        });
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        window.onload = function() {
+            displayCountries();
+            document.getElementById('copyBtn').style.display = 'flex';
+            setTimeout(() => {
+                if (document.querySelector('.country')) {
+                    document.querySelector('.country').click();
+                }
+            }, 500);
+        };
+    </script>
+</body>
+</html>
