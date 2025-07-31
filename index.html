@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>কোন দেশের নাম্বার নিবেন সিলেক্ট করুন</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -281,7 +284,6 @@
                         <i class="far fa-copy"></i> নাম্বার কপি করুন
                     </button>
 
-                    <!-- ✅ নতুন OTP GROUP বাটন -->
                     <a href="https://web.telegram.org/k/#-2737861345" target="_blank" class="otp-group-btn">
                         <i class="fab fa-telegram-plane"></i> OTP GROUP
                     </a>
@@ -303,104 +305,155 @@
     </div>
 
     <script>
-        function loadData() {
-            return {
-                countries: JSON.parse(localStorage.getItem('countries')) || ['বাংলাদেশ', 'ভারত', 'পাকিস্তান'],
-                numbers: JSON.parse(localStorage.getItem('numbers')) || {
-                    'বাংলাদেশ': ['2250715136681', '2250715136939', '2250715136261'],
-                    'ভারত': ['2250715136534', '2250715138630', '2250715130637'],
-                    'পাকিস্তান': ['2250715132902', '2250715131636', '2250715133196']
+        // --- আপনার দেওয়া ফায়ারবেজ কনফিগারেশন ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBS4o60EuxGLEXi8M-tqNJAiMCJ5qVi1tY",
+            authDomain: "free-number-dafbd.firebaseapp.com",
+            databaseURL: "https://free-number-dafbd-default-rtdb.firebaseio.com", // এটি যোগ করা হয়েছে
+            projectId: "free-number-dafbd",
+            storageBucket: "free-number-dafbd.appspot.com",
+            messagingSenderId: "76794112710",
+            appId: "1:76794112710:web:e6e52578352d977d6a05c7",
+            measurementId: "G-WLJNJKLQDP"
+        };
+        
+        // ফায়ারবেজ শুরু করুন
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        let appData = { countries: [], numbers: {} };
+
+        // ফায়ারবেজ থেকে ডেটা লোড এবং রিয়াল-টাইমে আপডেট
+        function loadDataFromFirebase() {
+            database.ref().on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    appData.countries = data.countries ? Object.values(data.countries) : [];
+                    appData.numbers = data.numbers || {};
+                } else {
+                    appData = { countries: [], numbers: {} };
                 }
-            };
-        }
+                displayCountries();
+                
+                const selectedCountryEl = document.querySelector('.country.selected');
+                if (selectedCountryEl) {
+                    const countryName = selectedCountryEl.textContent;
+                    const currentDisplayedNumber = document.getElementById('numberDisplay').dataset.currentNumber;
+                    const numbersForCountry = appData.numbers[countryName] || [];
 
-        function saveData(data) {
-            localStorage.setItem('countries', JSON.stringify(data.countries));
-            localStorage.setItem('numbers', JSON.stringify(data.numbers));
+                    // যদি প্রদর্শিত নাম্বারটি ডিলিট হয়ে গিয়ে থাকে অথবা কোনো নাম্বার না থাকে, তাহলে UI আপডেট করুন
+                    if (!numbersForCountry.includes(currentDisplayedNumber) || numbersForCountry.length === 0) {
+                         selectCountry(countryName, false);
+                    }
+                }
+            });
         }
-
+        
         function displayCountries() {
-            const data = loadData();
             const container = document.getElementById('countriesContainer');
+            const previouslySelected = document.querySelector('.country.selected')?.textContent;
             container.innerHTML = '';
             
-            if (data.countries.length === 0) {
+            if (appData.countries.length === 0) {
                 container.innerHTML = '<div class="message">কোন দেশ যোগ করা হয়নি</div>';
                 return;
             }
             
-            data.countries.forEach(country => {
+            appData.countries.forEach(country => {
                 const countryDiv = document.createElement('div');
                 countryDiv.className = 'country';
                 countryDiv.textContent = country;
-                countryDiv.onclick = () => selectCountry(country);
+                if (country === previouslySelected) {
+                    countryDiv.classList.add('selected');
+                }
+                countryDiv.onclick = (event) => selectCountry(country, true, event);
                 container.appendChild(countryDiv);
             });
         }
 
-        function selectCountry(country) {
-            const data = loadData();
-            const numbers = data.numbers[country] || [];
+        function selectCountry(country, isNewClick, event) {
+            const numbers = appData.numbers[country] || [];
             const numberDisplay = document.getElementById('numberDisplay');
             const changeBtn = document.getElementById('changeBtn');
             const copyBtn = document.getElementById('copyBtn');
-            
-            document.querySelectorAll('.country').forEach(el => {
-                el.classList.remove('selected');
-            });
-            
-            event.currentTarget.classList.add('selected');
+
+            if(isNewClick) {
+                document.querySelectorAll('.country').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                if(event) event.currentTarget.classList.add('selected');
+            }
             
             if (numbers.length > 0) {
                 const randomIndex = Math.floor(Math.random() * numbers.length);
-                numberDisplay.textContent = numbers[randomIndex];
+                const currentNumber = numbers[randomIndex];
+                numberDisplay.textContent = currentNumber;
                 numberDisplay.dataset.country = country;
-                numberDisplay.dataset.currentNumber = numbers[randomIndex];
-                changeBtn.disabled = false;
+                numberDisplay.dataset.currentNumber = currentNumber;
+                // --- পরিবর্তিত শর্ত ---
+                // বাটনটি শুধুমাত্র তখনই নিষ্ক্রিয় হবে যখন কোনো নাম্বারই থাকবে না
+                changeBtn.disabled = numbers.length === 0;
                 copyBtn.style.display = 'flex';
             } else {
                 numberDisplay.textContent = "কোন নাম্বার নেই";
+                numberDisplay.dataset.country = country;
+                numberDisplay.dataset.currentNumber = ''; // কোন নাম্বার নেই
                 changeBtn.disabled = true;
                 copyBtn.style.display = 'none';
             }
         }
-
+        
+        // --- পরিবর্তিত কোড ---
         document.getElementById('changeBtn').onclick = function() {
-            const country = document.getElementById('numberDisplay').dataset.country;
-            const currentNumber = document.getElementById('numberDisplay').dataset.currentNumber;
-            
-            if (country) {
-                const data = loadData();
-                const numbers = data.numbers[country] || [];
-                
-                const index = numbers.indexOf(currentNumber);
-                if (index !== -1) {
-                    numbers.splice(index, 1);
-                    data.numbers[country] = numbers;
-                    saveData(data);
-                }
-                
-                if (numbers.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * numbers.length);
-                    const newNumber = numbers[randomIndex];
-                    document.getElementById('numberDisplay').textContent = newNumber;
-                    document.getElementById('numberDisplay').dataset.currentNumber = newNumber;
-                } else {
-                    document.getElementById('numberDisplay').textContent = "কোন নাম্বার নেই";
-                    this.disabled = true;
-                    document.getElementById('copyBtn').style.display = 'none';
-                }
+            const changeButton = this;
+            changeButton.disabled = true; // ডাবল ক্লিক এড়ানোর জন্য বাটন নিষ্ক্রিয় করুন
+
+            const numberDisplay = document.getElementById('numberDisplay');
+            const country = numberDisplay.dataset.country;
+            const numberToDelete = numberDisplay.dataset.currentNumber;
+
+            if (!country || !numberToDelete || numberToDelete === "কোন নাম্বার নেই") {
+                showToast("ডিলিট করার মতো কোনো নাম্বার নেই!");
+                changeButton.disabled = false;
+                return;
             }
+
+            const numbersRef = database.ref('numbers/' + country);
+
+            // ডাটাবেস থেকে বর্তমান নাম্বার তালিকা একবার পড়ুন
+            numbersRef.once('value').then(snapshot => {
+                let currentNumbers = snapshot.val() || [];
+                
+                // যে নাম্বারটি ডিলিট করতে হবে সেটি ছাড়া বাকি নাম্বারগুলো নিয়ে নতুন তালিকা তৈরি করুন
+                const updatedNumbers = currentNumbers.filter(num => num !== numberToDelete);
+                
+                // নতুন তালিকা ডাটাবেসে সেট করুন (যদি তালিকা খালিও হয়ে যায়)
+                return numbersRef.set(updatedNumbers);
+            })
+            .then(() => {
+                showToast('নাম্বারটি ডিলিট ও পরিবর্তন করা হয়েছে!');
+                // রিয়েল-টাইম আপডেটের কারণে UI নিজে থেকেই ঠিক হয়ে যাবে, 
+                // কারণ `loadDataFromFirebase` ফাংশনটি ডাটাবেস পরিবর্তনের সাথে সাথে `selectCountry` কল করবে।
+                // এবং যেহেতু তালিকাটি এখন খালি, তাই এটি "কোন নাম্বার নেই" দেখাবে।
+            })
+            .catch(error => {
+                console.error("নাম্বার ডিলিট করতে সমস্যা হয়েছে: ", error);
+                showToast("একটি সমস্যা হয়েছে, আবার চেষ্টা করুন।");
+                // কোনো সমস্যা হলে বাটনটি আবার সক্রিয় করুন (যদি এখনো নাম্বার থাকে)
+                 const numbersForCountry = appData.numbers[country] || [];
+                 changeButton.disabled = numbersForCountry.length === 0;
+            });
         };
 
         document.getElementById('copyBtn').addEventListener('click', function() {
             const number = document.getElementById('numberDisplay').textContent;
-            navigator.clipboard.writeText(number).then(() => {
-                showToast('নাম্বার কপি করা হয়েছে!');
-            }).catch(err => {
-                console.error('কপি করতে ব্যর্থ: ', err);
-                showToast('কপি করতে ব্যর্থ!');
-            });
+            if(number && number !== "দেশ নির্বাচন করুন" && number !== "কোন নাম্বার নেই"){
+                navigator.clipboard.writeText(number).then(() => {
+                    showToast('নাম্বার কপি করা হয়েছে!');
+                }).catch(err => {
+                    console.error('কপি করতে ব্যর্থ: ', err);
+                    showToast('কপি করতে ব্যর্থ!');
+                });
+            }
         });
 
         function showToast(message) {
@@ -414,13 +467,8 @@
         }
 
         window.onload = function() {
-            displayCountries();
+            loadDataFromFirebase();
             document.getElementById('copyBtn').style.display = 'flex';
-            setTimeout(() => {
-                if (document.querySelector('.country')) {
-                    document.querySelector('.country').click();
-                }
-            }, 500);
         };
     </script>
 </body>
