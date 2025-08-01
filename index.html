@@ -386,11 +386,9 @@
             if (numbers.length > 0) {
                 const randomIndex = Math.floor(Math.random() * numbers.length);
                 const currentNumber = numbers[randomIndex];
-                numberDisplay.textContent = currentNumber;
+                numberDisplay.textContent = '+' + currentNumber; // <<< পরিবর্তন এখানে করা হয়েছে
                 numberDisplay.dataset.country = country;
                 numberDisplay.dataset.currentNumber = currentNumber;
-                // --- পরিবর্তিত শর্ত ---
-                // বাটনটি শুধুমাত্র তখনই নিষ্ক্রিয় হবে যখন কোনো নাম্বারই থাকবে না
                 changeBtn.disabled = numbers.length === 0;
                 copyBtn.style.display = 'flex';
             } else {
@@ -402,10 +400,9 @@
             }
         }
         
-        // --- পরিবর্তিত কোড ---
         document.getElementById('changeBtn').onclick = function() {
             const changeButton = this;
-            changeButton.disabled = true; // ডাবল ক্লিক এড়ানোর জন্য বাটন নিষ্ক্রিয় করুন
+            changeButton.disabled = true;
 
             const numberDisplay = document.getElementById('numberDisplay');
             const country = numberDisplay.dataset.country;
@@ -419,26 +416,17 @@
 
             const numbersRef = database.ref('numbers/' + country);
 
-            // ডাটাবেস থেকে বর্তমান নাম্বার তালিকা একবার পড়ুন
             numbersRef.once('value').then(snapshot => {
                 let currentNumbers = snapshot.val() || [];
-                
-                // যে নাম্বারটি ডিলিট করতে হবে সেটি ছাড়া বাকি নাম্বারগুলো নিয়ে নতুন তালিকা তৈরি করুন
                 const updatedNumbers = currentNumbers.filter(num => num !== numberToDelete);
-                
-                // নতুন তালিকা ডাটাবেসে সেট করুন (যদি তালিকা খালিও হয়ে যায়)
                 return numbersRef.set(updatedNumbers);
             })
             .then(() => {
                 showToast('নাম্বারটি ডিলিট ও পরিবর্তন করা হয়েছে!');
-                // রিয়েল-টাইম আপডেটের কারণে UI নিজে থেকেই ঠিক হয়ে যাবে, 
-                // কারণ `loadDataFromFirebase` ফাংশনটি ডাটাবেস পরিবর্তনের সাথে সাথে `selectCountry` কল করবে।
-                // এবং যেহেতু তালিকাটি এখন খালি, তাই এটি "কোন নাম্বার নেই" দেখাবে।
             })
             .catch(error => {
                 console.error("নাম্বার ডিলিট করতে সমস্যা হয়েছে: ", error);
                 showToast("একটি সমস্যা হয়েছে, আবার চেষ্টা করুন।");
-                // কোনো সমস্যা হলে বাটনটি আবার সক্রিয় করুন (যদি এখনো নাম্বার থাকে)
                  const numbersForCountry = appData.numbers[country] || [];
                  changeButton.disabled = numbersForCountry.length === 0;
             });
