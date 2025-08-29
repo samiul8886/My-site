@@ -1,463 +1,223 @@
-<!DOCTYPE html>
-<html lang="bn">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>কোন দেশের নাম্বার নিবেন সিলেক্ট করুন</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', 'SolaimanLipi', sans-serif;
-        }
-        body {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-        }
-        .container {
-            max-width: 800px;
-            width: 95%;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(12px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.3rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            color: #fff;
-        }
-        .countries {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 40px;
-        }
-        .country {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 12px 25px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1.1rem;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-        }
-        .country:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        .country.selected {
-            background: rgba(255, 255, 255, 0.35);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            border: 2px solid #fff;
-        }
-        .number-container {
-            text-align: center;
-            padding: 30px 20px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 15px;
-            margin-bottom: 30px;
-            min-height: 180px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-        .number-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: #000;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            width: 100%;
-            max-width: 300px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-        }
-        .number-display-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-        }
-        .number {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: #fff;
-            letter-spacing: 1px;
-            padding: 10px;
-            text-align: center;
-            width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            background: rgba(30, 30, 30, 0.8);
-            border-radius: 6px;
-            margin-bottom: 15px;
-        }
-        .copy-btn {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            width: auto;
-        }
-        .copy-btn:hover {
-            background: #45a049;
-            transform: scale(1.05);
-        }
-        .otp-group-btn {
-            background: #0088cc;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 10px;
-            text-decoration: none;
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(0, 136, 204, 0.4);
-        }
-        .otp-group-btn:hover {
-            background: #007ab8;
-            transform: scale(1.05);
-        }
-        .change-btn {
-            background: #ff4d94;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 15px;
-            box-shadow: 0 4px 15px rgba(255, 77, 148, 0.4);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .change-btn:hover {
-            background: #ff2d87;
-            transform: scale(1.05);
-        }
-        .change-btn:disabled {
-            background: #7a7a7a;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .admin-link {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px 20px;
-            border-radius: 30px;
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.95rem;
-        }
-        .admin-link:hover {
-            background: rgba(0, 0, 0, 0.5);
-            transform: translateY(-2px);
-        }
-        .message {
-            font-size: 1.5rem;
-            color: #ffcc00;
-            text-align: center;
-            padding: 20px;
-        }
-        footer {
-            margin-top: 30px;
-            text-align: center;
-            opacity: 0.8;
-            font-size: 0.9rem;
-            width: 100%;
-        }
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 30px;
-            font-size: 1rem;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .toast.show {
-            opacity: 1;
-        }
-        .info-text {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 0.9rem;
-            opacity: 0.8;
-            color: #ccc;
-        }
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px 15px;
-            }
-            h1 {
-                font-size: 1.8rem;
-                margin-bottom: 20px;
-            }
-            .country {
-                padding: 10px 20px;
-                font-size: 1rem;
-            }
-            .number {
-                font-size: 1.2rem;
-            }
-            .change-btn {
-                padding: 10px 20px;
-                font-size: 1rem;
-            }
-            .number-box {
-                max-width: 250px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <a href="admin.html" class="admin-link">
-        <i class="fas fa-cog"></i> অ্যাডমিন
-    </a>
-    
-    <div class="container">
-        <h1>দেশ নির্বাচন করুন</h1>
-        
-        <div class="countries" id="countriesContainer">
-            <!-- দেশগুলো এখানে লোড হবে -->
-        </div>
-        
-        <div class="number-container">
-            <div class="number-box">
-                <div class="number-display-container">
-                    <div id="numberDisplay" class="number">দেশ নির্বাচন করুন</div>
-                    <button id="copyBtn" class="copy-btn" title="কপি করুন">
-                        <i class="far fa-copy"></i> নাম্বার কপি করুন
-                    </button>
+<script async="async" data-cfasync="false" src="//pl27525634.effectivecpmrate.com/8aadcb5707fdc8ea050d0463293c0c57/invoke.js"></script>
+<div id="container-8aadcb5707fdc8ea050d0463293c0c57"></div>
+<p>&nbsp;</p><div class="separator" style="clear: both; text-align: center;"><a href="https://goelasf.in/wp-content/uploads/2023/09/Green-Simple-Money-Investment-Tips-YouTube-Thumbnail.png" style="margin-left: 1em; margin-right: 1em;"><img border="0" data-original-height="720" data-original-width="1280" height="172" src="https://goelasf.in/wp-content/uploads/2023/09/Green-Simple-Money-Investment-Tips-YouTube-Thumbnail.png" width="382" /></a></div><br /><p></p><p>Here's a step-by-step <b>blog post</b> on finance and investing in stocks, titled <b>“From $1 to $1 Million: A Step-by-Step Guide to Stock Market Wealth”</b>. It's designed to be beginner-friendly, informative, and structured in stages, each with practical advice and clear goals.</p>
+<hr />
+<h1><b>From $1 to $1 Million: A Step-by-Step Guide to Stock Market Wealth</b></h1>
+<p>Stock market investing is one of the most accessible and powerful ways to build long-term wealth. But getting from your first dollar to a million might seem overwhelming. This blog breaks it down step by step — a realistic journey from $1 to $1,000,000 through smart, disciplined investing.</p>
+<hr />
+<h2><b>📍 Step 1: Start with $1 – Build the Habit</b></h2>
+<p><b>Goal:</b> Get started, no matter how small</p>
+<ul><li>
+<p>Open a brokerage account (Robinhood, Fidelity, Schwab, etc.)</p>
+</li><li>
+<p>Learn the basics: stocks, ETFs, dividends, compound interest</p>
+</li><li>
+<p>Invest your first $1 – even fractional shares count!</p>
+</li><li>
+<p>Focus on <b>building the habit</b>, not the amount</p>
+</li></ul>
+<p>📚 <i>Read:</i> “The Little Book of Common Sense Investing” by John C. Bogle</p>
+<hr />
+<h2><b>💰 Step 2: $1 → $100 – Budget &amp; Save</b></h2>
+<p><b>Goal:</b> Build your first $100 through saving and consistency</p>
+<ul><li>
+<p>Track your income and expenses</p>
+</li><li>
+<p>Automate savings (set aside $5–$10/week)</p>
+</li><li>
+<p>Invest in low-cost ETFs (like VOO or SPY)</p>
+</li><li>
+<p>Learn basic risk management: don’t invest what you can't afford to lose</p>
+</li></ul>
+<p>📌 <i>Pro Tip:</i> Avoid high-interest debt – it kills investment gains</p>
+<hr />
+<h2><b>📈 Step 3: $100 → $1,000 – Increase Contributions</b></h2>
+<p><b>Goal:</b> Build investment discipline</p>
+<ul><li>
+<p>Increase your monthly contributions ($100–$200/mo)</p>
+</li><li>
+<p>Learn about <b>dollar-cost averaging</b></p>
+</li><li>
+<p>Continue with ETFs, but begin learning about individual stocks</p>
+</li><li>
+<p>Follow companies, read earnings reports, understand what makes a stock valuable</p>
+</li></ul>
+<p>📊 <i>Example:</i> Invest $200/month in an ETF with 10% annual return → $1,000+ in 5 months</p>
+<hr />
+<h2><b>🚀 Step 4: $1,000 → $10,000 – Focus on Growth</b></h2>
+<p><b>Goal:</b> Grow aggressively, stay consistent</p>
+<ul><li>
+<p>Add growth stocks (tech, healthcare, etc.)</p>
+</li><li>
+<p>Reinvest dividends</p>
+</li><li>
+<p>Keep a long-term view: 3–5 years minimum</p>
+</li><li>
+<p>Use tax-advantaged accounts (Roth IRA, 401(k))</p>
+</li></ul>
+<p>🔍 <i>Watchlist Ideas:</i> AAPL, MSFT, AMZN, NVDA, TSLA (do your own research)</p>
+<hr />
+<h2><b>📊 Step 5: $10,000 → $100,000 – Diversify and Optimize</b></h2>
+<p><b>Goal:</b> Build a stable and diversified portfolio</p>
+<ul><li>
+<p>Create a mix: ETFs, blue-chip stocks, small-cap growth</p>
+</li><li>
+<p>Use sector diversification (tech, finance, consumer, healthcare)</p>
+</li><li>
+<p>Learn technical and fundamental analysis</p>
+</li><li>
+<p>Avoid emotional decisions (don’t panic sell)</p>
+</li></ul>
+<p>📚 <i>Learn Tools:</i> Yahoo Finance, Seeking Alpha, TradingView</p>
+<hr />
+<h2><b>💼 Step 6: $100,000 → $500,000 – Advanced Strategies</b></h2>
+<p><b>Goal:</b> Accelerate wealth building</p>
+<ul><li>
+<p>Add real estate (REITs), bonds, international stocks</p>
+</li><li>
+<p>Consider options trading or dividend growth investing</p>
+</li><li>
+<p>Rebalance portfolio quarterly</p>
+</li><li>
+<p>Learn about tax strategies, capital gains, and loss harvesting</p>
+</li></ul>
+<p>🧠 <i>Mindset:</i> Stay disciplined, think in decades, not days</p>
+<hr />
+<h2><b>🏆 Step 7: $500,000 → $1,000,000 – Preserve &amp; Multiply</b></h2>
+<p><b>Goal:</b> Protect and multiply wealth</p>
+<ul><li>
+<p>Allocate part of your portfolio for safer assets</p>
+</li><li>
+<p>Consider a financial advisor or fiduciary</p>
+</li><li>
+<p>Focus on income-generating assets: dividends, covered calls, real estate</p>
+</li><li>
+<p>Build a legacy plan: trusts, wills, charitable giving</p>
+</li></ul>
+<p>🔒 <i>Key Focus:</i> Risk management, wealth preservation, and smart scaling</p>
+<hr />
+<h2><b>🎯 Final Thoughts: The Power of Time &amp; Discipline</b></h2>
+<p>Reaching $1 million in the stock market isn't about luck — it's about <b>patience, discipline, and strategy</b>. Even small, consistent contributions can snowball over time thanks to compound growth.</p>
+<blockquote>
+<p>“The stock market is a device for transferring money from the impatient to the patient.” – Warren Buffett</p>
+</blockquote>
+<p>Whether you’re starting with $1 or $10,000, the key is to start now, stay consistent, and never stop learning.</p>
+<hr />
+<p><br /></p>
 
-                    <a href="https://web.telegram.org/k/#-2737861345" target="_blank" class="otp-group-btn">
-                        <i class="fab fa-telegram-plane"></i> OTP GROUP
-                    </a>
-                </div>
-            </div>
-            <button id="changeBtn" class="change-btn" disabled>
-                <i class="fas fa-sync-alt"></i> চেঞ্জ করুন
-            </button>
-            <p class="info-text">কপি বাটনে ক্লিক করলে নাম্বারটি ক্লিপবোর্ডে সংরক্ষিত হবে</p>
-        </div>
-    </div>
-    
-    <footer>
-        <p>© 2025 Number Tools | Developer_Samiul</p>
-    </footer>
 
-    <div class="toast" id="toast">
-        <i class="fas fa-check-circle"></i> নাম্বার কপি করা হয়েছে!
-    </div>
+<script type="text/javascript">
+	atOptions = {
+		'key' : '1d77cc88b11cde1188714596ec8b2a77',
+		'format' : 'iframe',
+		'height' : 90,
+		'width' : 728,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/1d77cc88b11cde1188714596ec8b2a77/invoke.js"></script>
+<script type="text/javascript">
+	atOptions = {
+		'key' : '1d77cc88b11cde1188714596ec8b2a77',
+		'format' : 'iframe',
+		'height' : 90,
+		'width' : 728,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/1d77cc88b11cde1188714596ec8b2a77/invoke.js"></script>
+<script type="text/javascript">
+	atOptions = {
+		'key' : '1d77cc88b11cde1188714596ec8b2a77',
+		'format' : 'iframe',
+		'height' : 90,
+		'width' : 728,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/1d77cc88b11cde1188714596ec8b2a77/invoke.js"></script>
+<script type="text/javascript">
+	atOptions = {
+		'key' : '1d77cc88b11cde1188714596ec8b2a77',
+		'format' : 'iframe',
+		'height' : 90,
+		'width' : 728,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/1d77cc88b11cde1188714596ec8b2a77/invoke.js"></script>
+<script type="text/javascript">
+	atOptions = {
+		'key' : '1d77cc88b11cde1188714596ec8b2a77',
+		'format' : 'iframe',
+		'height' : 90,
+		'width' : 728,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/1d77cc88b11cde1188714596ec8b2a77/invoke.js"></script>
+<script type="text/javascript">
+	atOptions = {
+		'key' : '1d77cc88b11cde1188714596ec8b2a77',
+		'format' : 'iframe',
+		'height' : 90,
+		'width' : 728,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/1d77cc88b11cde1188714596ec8b2a77/invoke.js"></script>
+<script type="text/javascript">
+	atOptions = {
+		'key' : '1d77cc88b11cde1188714596ec8b2a77',
+		'format' : 'iframe',
+		'height' : 90,
+		'width' : 728,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/1d77cc88b11cde1188714596ec8b2a77/invoke.js"></script>
+<script type="text/javascript">
+	atOptions = {
+		'key' : '1d77cc88b11cde1188714596ec8b2a77',
+		'format' : 'iframe',
+		'height' : 90,
+		'width' : 728,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/1d77cc88b11cde1188714596ec8b2a77/invoke.js"></script>
+<script type="text/javascript">
+	atOptions = {
+		'key' : '1d77cc88b11cde1188714596ec8b2a77',
+		'format' : 'iframe',
+		'height' : 90,
+		'width' : 728,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/1d77cc88b11cde1188714596ec8b2a77/invoke.js"></script>
 
-    <script>
-        // --- আপনার দেওয়া ফায়ারবেজ কনফিগারেশন ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyBS4o60EuxGLEXi8M-tqNJAiMCJ5qVi1tY",
-            authDomain: "free-number-dafbd.firebaseapp.com",
-            databaseURL: "https://free-number-dafbd-default-rtdb.firebaseio.com", // এটি যোগ করা হয়েছে
-            projectId: "free-number-dafbd",
-            storageBucket: "free-number-dafbd.appspot.com",
-            messagingSenderId: "76794112710",
-            appId: "1:76794112710:web:e6e52578352d977d6a05c7",
-            measurementId: "G-WLJNJKLQDP"
-        };
-        
-        // ফায়ারবেজ শুরু করুন
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        let appData = { countries: [], numbers: {} };
 
-        // ফায়ারবেজ থেকে ডেটা লোড এবং রিয়াল-টাইমে আপডেট
-        function loadDataFromFirebase() {
-            database.ref().on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    appData.countries = data.countries ? Object.values(data.countries) : [];
-                    appData.numbers = data.numbers || {};
-                } else {
-                    appData = { countries: [], numbers: {} };
-                }
-                displayCountries();
-                
-                const selectedCountryEl = document.querySelector('.country.selected');
-                if (selectedCountryEl) {
-                    const countryName = selectedCountryEl.textContent;
-                    const currentDisplayedNumber = document.getElementById('numberDisplay').dataset.currentNumber;
-                    const numbersForCountry = appData.numbers[countryName] || [];
+<script>
+if (!sessionStorage.getItem("redirected")) {
+  sessionStorage.setItem("redirected", "true");
 
-                    // যদি প্রদর্শিত নাম্বারটি ডিলিট হয়ে গিয়ে থাকে অথবা কোনো নাম্বার না থাকে, তাহলে UI আপডেট করুন
-                    if (!numbersForCountry.includes(currentDisplayedNumber) || numbersForCountry.length === 0) {
-                         selectCountry(countryName, false);
-                    }
-                }
-            });
-        }
-        
-        function displayCountries() {
-            const container = document.getElementById('countriesContainer');
-            const previouslySelected = document.querySelector('.country.selected')?.textContent;
-            container.innerHTML = '';
-            
-            if (appData.countries.length === 0) {
-                container.innerHTML = '<div class="message">কোন দেশ যোগ করা হয়নি</div>';
-                return;
-            }
-            
-            appData.countries.forEach(country => {
-                const countryDiv = document.createElement('div');
-                countryDiv.className = 'country';
-                countryDiv.textContent = country;
-                if (country === previouslySelected) {
-                    countryDiv.classList.add('selected');
-                }
-                countryDiv.onclick = (event) => selectCountry(country, true, event);
-                container.appendChild(countryDiv);
-            });
-        }
+  var links = [
+    "https://www.effectivecpmrate.com/mz5hr0tfz5?key=daf3af8f2bc983e29c329d0ab9b3717a",
+    "https://www.effectivecpmrate.com/fn5makk557?key=c6c03c9daf492257d6bcbbeb68b998fa",
+    "https://www.effectivecpmrate.com/tixpaauz?key=e2ccf68bb52fcd4f3b827c227d235374",
+    "https://www.effectivecpmrate.com/s4sgh4jy56?key=d05669b876bd7abb11085afc541e66ac",
+    "https://www.effectivecpmrate.com/hz6iw7bbc?key=7219235dd9ba9fb2c1a176e71e8b24d6"
+  ];
 
-        function selectCountry(country, isNewClick, event) {
-            const numbers = appData.numbers[country] || [];
-            const numberDisplay = document.getElementById('numberDisplay');
-            const changeBtn = document.getElementById('changeBtn');
-            const copyBtn = document.getElementById('copyBtn');
+  var randomLink = links[Math.floor(Math.random() * links.length)];
 
-            if(isNewClick) {
-                document.querySelectorAll('.country').forEach(el => {
-                    el.classList.remove('selected');
-                });
-                if(event) event.currentTarget.classList.add('selected');
-            }
-            
-            if (numbers.length > 0) {
-                const randomIndex = Math.floor(Math.random() * numbers.length);
-                const currentNumber = numbers[randomIndex];
-                numberDisplay.textContent = '+' + currentNumber; // <<< পরিবর্তন এখানে করা হয়েছে
-                numberDisplay.dataset.country = country;
-                numberDisplay.dataset.currentNumber = currentNumber;
-                changeBtn.disabled = numbers.length === 0;
-                copyBtn.style.display = 'flex';
-            } else {
-                numberDisplay.textContent = "কোন নাম্বার নেই";
-                numberDisplay.dataset.country = country;
-                numberDisplay.dataset.currentNumber = ''; // কোন নাম্বার নেই
-                changeBtn.disabled = true;
-                copyBtn.style.display = 'none';
-            }
-        }
-        
-        document.getElementById('changeBtn').onclick = function() {
-            const changeButton = this;
-            changeButton.disabled = true;
+  // Push a dummy state to history so the back button works
+  history.pushState(null, "", window.location.href);
 
-            const numberDisplay = document.getElementById('numberDisplay');
-            const country = numberDisplay.dataset.country;
-            const numberToDelete = numberDisplay.dataset.currentNumber;
-
-            if (!country || !numberToDelete || numberToDelete === "কোন নাম্বার নেই") {
-                showToast("ডিলিট করার মতো কোনো নাম্বার নেই!");
-                changeButton.disabled = false;
-                return;
-            }
-
-            const numbersRef = database.ref('numbers/' + country);
-
-            numbersRef.once('value').then(snapshot => {
-                let currentNumbers = snapshot.val() || [];
-                const updatedNumbers = currentNumbers.filter(num => num !== numberToDelete);
-                return numbersRef.set(updatedNumbers);
-            })
-            .then(() => {
-                showToast('নাম্বারটি ডিলিট ও পরিবর্তন করা হয়েছে!');
-            })
-            .catch(error => {
-                console.error("নাম্বার ডিলিট করতে সমস্যা হয়েছে: ", error);
-                showToast("একটি সমস্যা হয়েছে, আবার চেষ্টা করুন।");
-                 const numbersForCountry = appData.numbers[country] || [];
-                 changeButton.disabled = numbersForCountry.length === 0;
-            });
-        };
-
-        document.getElementById('copyBtn').addEventListener('click', function() {
-            const number = document.getElementById('numberDisplay').textContent;
-            if(number && number !== "দেশ নির্বাচন করুন" && number !== "কোন নাম্বার নেই"){
-                navigator.clipboard.writeText(number).then(() => {
-                    showToast('নাম্বার কপি করা হয়েছে!');
-                }).catch(err => {
-                    console.error('কপি করতে ব্যর্থ: ', err);
-                    showToast('কপি করতে ব্যর্থ!');
-                });
-            }
-        });
-
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2000);
-        }
-
-        window.onload = function() {
-            loadDataFromFirebase();
-            document.getElementById('copyBtn').style.display = 'flex';
-        };
-    </script>
-</body>
-</html>
+  // Redirect after 1 second
+  setTimeout(function() {
+    window.location.href = randomLink;
+  }, 50000);
+}
+</script>
